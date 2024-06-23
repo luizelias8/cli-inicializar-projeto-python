@@ -56,6 +56,21 @@ Para criar um projeto chamado `meu-projeto`:
 
     python cli_inicializar_projeto_python.py meu-projeto
 
+### Configuração de Preferências
+
+O comportamento do script é configurável através do arquivo `preferencias.ini`. No repositório, fornecemos um arquivo de exemplo `preferencias-exemplo.ini`. Você deve copiá-lo e renomeá-lo para `preferencias.ini` para que as preferências sejam aplicadas corretamente.
+
+#### Estrutura do `preferencias.ini`
+
+    [preferencias]
+    readme = On
+    git = On
+    venv = On
+
+- **readme**: Ativa (`On`) ou desativa (`Off`) a criação do arquivo `README.md`.
+- **git**: Ativa (`On`) ou desativa (`Off`) a inicialização do Git.
+- **venv**: Ativa (`On`) ou desativa (`Off`) a criação do ambiente virtual.
+
 ## Autor
 
 - [Luiz Elias](https://github.com/luizelias8)

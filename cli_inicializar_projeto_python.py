@@ -2,8 +2,35 @@ from argparse import ArgumentParser
 import os
 import subprocess
 import requests
+import sys
+import configparser
 
-__version__ = '1.2.0'
+__version__ = '2.0.0'
+
+def obter_caminho_preferencias():
+    if hasattr(sys, 'frozen'):
+        # Se o script está congelado (por exemplo, com PyInstaller), usa o diretório do executável
+        caminho_base = os.path.dirname(sys.executable)
+    else:
+        # Se não está congelado, usa o diretório do script Python
+        caminho_base = os.path.dirname(os.path.abspath(__file__))
+
+    # Retorna o caminho completo para preferencias.ini
+    return os.path.join(caminho_base, 'preferencias.ini')
+
+def ler_preferencias():
+    config = configparser.ConfigParser()
+    caminho_preferencias = obter_caminho_preferencias()
+    config.read(caminho_preferencias)
+
+    # Leitura das preferências do arquivo ini
+    preferencias = {
+        'readme': config.getboolean('preferencias', 'readme', fallback=True),
+        'git': config.getboolean('preferencias', 'git', fallback=True),
+        'venv': config.getboolean('preferencias', 'venv', fallback=True)
+    }
+
+    return preferencias
 
 def download_gitignore(pasta_destino):
     url_gitignore = 'https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore'
@@ -18,47 +45,57 @@ def download_gitignore(pasta_destino):
         return False
 
 def criar_projeto(diretorio):
+    preferencias = ler_preferencias()
+
     pasta_projeto = os.path.abspath(diretorio)
     os.makedirs(pasta_projeto, exist_ok=True)
 
-    caminho_readme = os.path.join(pasta_projeto, 'README.md')
-    with open(caminho_readme, 'w') as arquivo_readme:
-        pass # Cria o arquivo README.md vazio
+    # Criação do README.md se a preferência for 'on'
+    if preferencias['readme']:
+        caminho_readme = os.path.join(pasta_projeto, 'README.md')
+        with open(caminho_readme, 'w') as arquivo_readme:
+            pass # Cria o arquivo README.md vazio
+        print('README.md criado.')
+    else:
+        print('readme não habilitado. README.md não será gerado.')
 
-    # Tentativa de download do .gitignore do GitHub
-    if not download_gitignore(pasta_projeto):
-        # Se o download falhar, cria um .gitignore básico manualmente
-        caminho_gitignore = os.path.join(pasta_projeto, '.gitignore')
-        with open(caminho_gitignore, 'w') as arquivo_gitignore:
-            arquivo_gitignore.write('\n'.join(['.venv', '__pycache__']))
-        print('Criado .gitignore básico manualmente')
+    # Inicialização do Git se a preferência for 'on'
+    if preferencias['git']:
+        # Tentativa de download do .gitignore do GitHub
+        if not download_gitignore(pasta_projeto):
+            # Se o download falhar, cria um .gitignore básico manualmente
+            caminho_gitignore = os.path.join(pasta_projeto, '.gitignore')
+            with open(caminho_gitignore, 'w') as arquivo_gitignore:
+                arquivo_gitignore.write('\n'.join(['.venv', '__pycache__']))
+            print('Criado .gitignore básico manualmente')
 
-    comandos = [
-        [
+        comandos_git = [
+            ['git', '-C', pasta_projeto, 'init'],
+            ['git', '-C', pasta_projeto, 'add', '.'],
+            ['git', '-C', pasta_projeto, 'commit', '-m', 'Commit inicial']
+        ]
+        for comando in comandos_git:
+            try:
+                subprocess.run(comando, check=True, timeout=60)
+                print(f"Comando Git '{' '.join(comando)}' executado com sucesso.")
+            except subprocess.SubprocessError as e:
+                print(f"Falha ao executar o comando Git.\n{e}")
+    else:
+        print('git não habilitado. .gitignore não será gerado.')
+
+    # Criação do ambiente virtual se a preferência for 'on'
+    if preferencias['venv']:
+        comando_venv = [
             'python',
             '-m',
             'venv',
             os.path.join(pasta_projeto, '.venv')
-        ],
-        ['git', '-C', pasta_projeto, 'init'],
-        ['git', '-C', pasta_projeto, 'add', '.'],
-        ['git', '-C', pasta_projeto, 'commit', '-m', 'Commit inicial']
-    ]
-    for comando in comandos:
+        ]
         try:
-            subprocess.run(comando, check=True, timeout=60)
-        except FileNotFoundError as e:
-            print(
-                f'O comando {comando} falhou porque o processo '
-                f'nao pode ser encontrado.\n{e}'
-            )
-        except subprocess.CalledProcessError as e:
-            print(
-                f'O comando {comando} falhou porque o processo '
-                f'nao retornou um codigo de retorno bem-sucedido.\n{e}'
-            )
-        except subprocess.TimeoutExpired as e:
-            print(f'O comando {comando} expirou o tempo.\n{e}')
+            subprocess.run(comando_venv, check=True, timeout=60)
+            print('Ambiente virtual criado.')
+        except subprocess.SubprocessError as e:
+            print(f'Falha ao criar o ambiente virtual.\n{e}')
 
 def main():
     parser = ArgumentParser(description='Inicializa um projeto Python com ambiente virtual, readme e Git.')
