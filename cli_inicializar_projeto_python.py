@@ -5,7 +5,7 @@ import requests
 import sys
 import configparser
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 def obter_caminho_preferencias():
     if hasattr(sys, 'frozen'):
@@ -71,9 +71,16 @@ def criar_projeto(diretorio):
 
         comandos_git = [
             ['git', '-C', pasta_projeto, 'init'],
-            ['git', '-C', pasta_projeto, 'add', '.'],
-            ['git', '-C', pasta_projeto, 'commit', '-m', 'Commit inicial']
+            ['git', '-C', pasta_projeto, 'add', '.gitignore']
         ]
+
+        # Adiciona o README.md se a preferência for 'on'
+        if preferencias['readme']:
+            comandos_git.append(['git', '-C', pasta_projeto, 'add', 'README.md'])
+
+        # Faz o commit inicial
+        comandos_git.append(['git', '-C', pasta_projeto, 'commit', '-m', 'Commit inicial'])
+
         for comando in comandos_git:
             try:
                 subprocess.run(comando, check=True, timeout=60)
