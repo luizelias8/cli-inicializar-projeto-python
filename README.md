@@ -24,16 +24,11 @@ Este script facilita a inicialização de um projeto em Python ao automatizar al
 
 ### Instalação
 
-1. Clone este repositório para sua máquina local:
-    ```
-    git clone https://github.com/luizelias8/cli-inicializar-projeto-python.git
-    cd cli-inicializar-projeto-python
-    ```
-
-2. Instale as dependências listadas no arquivo `requirements.txt` usando pip:
-    ```
-    pip install -r requirements.txt
-    ```
+Clone este repositório para sua máquina local:
+```
+git clone https://github.com/luizelias8/cli-inicializar-projeto-python.git
+cd cli-inicializar-projeto-python
+```
 
 ### Execução
 

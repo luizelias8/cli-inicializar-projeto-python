@@ -1,11 +1,11 @@
 from argparse import ArgumentParser
 import os
 import subprocess
-import requests
+import urllib.request
 import sys
 import configparser
 
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 def obter_caminho_preferencias():
     if hasattr(sys, 'frozen'):
@@ -34,10 +34,10 @@ def ler_preferencias():
 
 def download_gitignore(pasta_destino):
     url_gitignore = 'https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore'
-    resposta = requests.get(url_gitignore)
-    if resposta.status_code == 200:
+    resposta = urllib.request.urlopen(url_gitignore)
+    if resposta.status == 200:
         with open(os.path.join(pasta_destino, '.gitignore'), 'wb') as arquivo:
-            arquivo.write(resposta.content)
+            arquivo.write(resposta.read())
         print('Arquivo .gitignore baixado e salvo com sucesso.')
         return True
     else:
